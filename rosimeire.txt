@@ -1,0 +1,44 @@
+package sample;
+
+import robocode.*;
+
+public class Rosimeire extends AdvancedRobot {
+
+    public void run() {
+        setColors(java.awt.Color.cyan, java.awt.Color.cyan, java.awt.Color.cyan); // Define a cor do robô como ciano
+        setAdjustGunForRobotTurn(true); // Configura a arma para girar independentemente do robô
+        setAdjustRadarForGunTurn(true); // Configura o radar para girar independentemente da arma
+
+        while (true) {
+            turnRadarRightRadians(Double.POSITIVE_INFINITY); // Gira o radar continuamente
+        }
+    }
+
+    public void onScannedRobot(ScannedRobotEvent e) {
+        double enemyBearing = getHeadingRadians() + e.getBearingRadians(); // Calcula o ângulo do inimigo em relação ao norte
+        double enemyDistance = e.getDistance(); // Obtém a distância do inimigo
+        double enemyHeading = e.getHeadingRadians(); // Obtém o ângulo de movimento do inimigo
+        double enemyVelocity = e.getVelocity(); // Obtém a velocidade do inimigo
+
+        // Calcula a posição futura do inimigo
+        double futureX = getX() + Math.sin(enemyHeading) * enemyDistance;
+        double futureY = getY() + Math.cos(enemyHeading) * enemyDistance;
+
+        // Calcula o ângulo para mirar na posição futura do inimigo
+        double turnAngle = robocode.util.Utils.normalRelativeAngle(Math.atan2(futureX - getX(), futureY - getY()) - getGunHeadingRadians());
+
+        // Gira a arma para mirar na posição futura do inimigo
+        setTurnGunRightRadians(turnAngle);
+        
+        // Move-se em direção ao inimigo
+        setAhead(enemyDistance / 2);
+
+        // Atira no inimigo
+        if (enemyDistance < 400) {
+            setFire(3);
+        }
+
+        // Atualiza o radar para continuar procurando outros inimigos
+        setTurnRadarRightRadians(robocode.util.Utils.normalRelativeAngle(enemyBearing - getRadarHeadingRadians()) * 2);
+    }
+}
